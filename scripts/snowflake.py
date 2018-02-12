@@ -19,7 +19,6 @@ SNOWFLAKE_DEFAULTS = {
     "debug": False,
     "movie": False,
 }
-
 def ensure_python():
     # pylab doesn't play well with pypy
     # so this will cause us to re-exec if
@@ -35,7 +34,7 @@ def ensure_python():
 
 def get_cli():
     parser = argparse.ArgumentParser(description='Snowflake Generator.')
-    parser.add_argument(dest="name", nargs='+', help="The name of the snowflake.")
+    parser.add_argument('-n', '--name', dest="name", type=str, help="The name of the snowflake.")
     parser.add_argument('-s', '--size', dest="size", type=int, help="The size of the snowflake.")
     parser.add_argument('-e', '--env', dest='env', help='comma seperated key=val env overrides')
     parser.add_argument('-b', '--bw', dest='bw', action='store_true', help='write out the image in black and white')
