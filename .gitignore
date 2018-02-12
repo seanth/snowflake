@@ -28,3 +28,4 @@ src/etc
 tags
 tarpit/
 web
+.gitignore
