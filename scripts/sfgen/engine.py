@@ -727,7 +727,9 @@ def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
     os.system(cmd)
     #
     print "***Attempting to generate DXF using pstoedit"
-    cmd = "pstoedit -dt -f 'dxf:-polyaslines -mm' %s %s" % (epsfn, dxffn)
+    #on windows it _needs_ to have the dxf part in double quotes
+    #STH 2018.0212
+    cmd = 'pstoedit -dt -f "dxf:-polyaslines -mm" %s %s' % (epsfn, dxffn)
     msg = "Running '%s'" % cmd
     log(msg)
     os.system(cmd)
@@ -739,17 +741,20 @@ def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
     scad_txt = 'scale([30, 30, 30]) linear_extrude(height=.18, layer="0") import("%s");\n' % dxffn
     f.write(scad_txt)
     f.close()
-    cmd = "%s/Contents/MacOS/OpenSCAD -o %s %s" % (OpenSCADPath, stlfn, scad_fn)
+    if sys.platform=="win32":
+        cmd = "openscad.com -o %s %s" % (stlfn, scad_fn)
+    else:
+        cmd = "%s/Contents/MacOS/OpenSCAD -o %s %s" % (OpenSCADPath, stlfn, scad_fn)
     msg = "Running '%s'" % cmd
     log(msg)
     os.system(cmd)
     #
-    print "***Attempting to generate a STL using OpenSCAD***"
-    print "***THIS IS AN UNRESOLVED ISSUE***"
-    cmd = "python %s/Contents/Resources/cura.py -s %s -i %s" % (CuraPath, stlfn, SNOWFLAKE_INI)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
+    #print "***Attempting to generate a gcode using CURA***"
+    #print "***THIS IS AN UNRESOLVED ISSUE***"
+    #cmd = "python %s/Contents/Resources/cura.py -s %s -i %s" % (CuraPath, stlfn, SNOWFLAKE_INI)
+    #msg = "Running '%s'" % cmd
+    #log(msg)
+    #os.system(cmd)
 
 def run(args):
     log_output(args.name)
