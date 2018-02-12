@@ -19,6 +19,10 @@ Requirements for Laser Cutting:
 Requirements for 3D Printing:
     - PyPy or Python
     - PIL (PyPy/Python accessible)
-    - potrace (For translating SVG)
+    - potrace (For translating SVG) (http://potrace.sourceforge.net/#downloading)
+    - pstoedit
+    - ghostscript (must be v9.2) (brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/79e814b80c470c894d24e5b37108c5bacaf45a80/Formula/ghostscript.rb)
+    - matplotlib
+    - CURA version 15.04.6 (https://ultimaker.com/en/products/cura-software/list)
 
 ![Example Snowflake](https://raw.githubusercontent.com/vishnubob/snowflake/master/media/example.png)
