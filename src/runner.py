@@ -1,6 +1,8 @@
+from sfgen import *
+
 def run(args):
     log_output(args.name)
-    msg = "Snowflake Generator v0.3"
+    msg = "Snowflake Generator v0.31"
     log(msg)
     pfn = "%s.pickle" % args.name
     ifn = "%s.png" % args.name
