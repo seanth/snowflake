@@ -2,7 +2,25 @@
 
 import os
 import sys
+import argparse
 from sfgen import *
+
+
+SNOWFLAKE_DEFAULTS = {
+    "size": 200,
+    "name": "snowflake",
+    "bw": False,
+    "env": '',
+    "pipeline_3d": False,
+    "pipeline_lasercutter": False,
+    "randomize": False,
+    "max_steps": 0,
+    "margin": .85,
+    "curves": False,
+    "datalog": False,
+    "debug": False,
+    "movie": False,
+}
 
 def ensure_python():
     # pylab doesn't play well with pypy
