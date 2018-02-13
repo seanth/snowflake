@@ -17,6 +17,12 @@ def log_output(name):
     logger = logging.getLogger()
     logger.addHandler(foh)
 
+
 from curves import *
 from graphics import *
 from engine import *
+# added movie, render, runner
+# 2018-0212
+from movie import *
+from render import *
+from runner import *

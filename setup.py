@@ -15,7 +15,10 @@ snowflake = {
                     "sfgen.curves", 
                     "sfgen.splines", 
                     "sfgen.engine", 
-                    "sfgen.graphics", 
+                    "sfgen.graphics",
+                    "sfgen.movie",
+                    "sfgen.runner",
+                    "sfgen.render", 
                 ],
     "install_requires": [
         "pillow",
