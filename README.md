@@ -7,18 +7,22 @@ lifted (verbatim) from "MODELING SNOW CRYSTAL GROWTH II: A mesoscopic lattice
 map with plausible dynamics" by Janko Gravner and David Griffeath.
 
 Requirements:
-    - PyPy (for fast execution of the simulations)
-    - PIL for exporting graphics (PyPy accesible)
+    * PyPy (for fast execution of the simulations)
+    * PIL for exporting graphics (PyPy accesible)
 
 Requirements for Laser Cutting:
-    - Python only (no PyPy support)
-    - PIL (Python accessible)
-    - potrace (For translating SVG)
-    - scipy/numpy (For clustering)
+    * Python only (no PyPy support)
+    * PIL (Python accessible)
+    * potrace (For translating SVG)
+    * scipy/numpy (For clustering)
 
 Requirements for 3D Printing:
-    - PyPy or Python
-    - PIL (PyPy/Python accessible)
-    - potrace (For translating SVG)
+    * PyPy or Python
+    * PIL (PyPy/Python accessible)
+    * potrace (For translating SVG)
+    * pstoedit (For generating EPS)
+    * ghostscript v 9.20 (For generating DXF. Versions > 9.20 break this functionaliy)
+    * OpenSCAD (For generating STL)
+    * CURA (For generating gcode. Currently not working)
 
 ![Example Snowflake](https://raw.githubusercontent.com/vishnubob/snowflake/master/media/example.png)
