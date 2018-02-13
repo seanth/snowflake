@@ -13,9 +13,12 @@ snowflake = {
     "py_modules":[
                     "sfgen.__init__", 
                     "sfgen.curves", 
-                    "sfgen.splines", 
-                    "sfgen.engine", 
-                    "sfgen.graphics", 
+                    "sfgen.engine",
+                    "sfgen.graphics",
+                    "sfgen.movie",
+                    "sfgen.render",
+                    "sfgen.runner",
+                    "sfgen.splines",      
                 ],
     "install_requires": [
         "pillow",
@@ -24,7 +27,7 @@ snowflake = {
     "scripts":[
                 "scripts/snowflake.py",
                ],
-    "version": "0.3",
+    "version": "0.31",
 }
 
 if __name__ == "__main__":
