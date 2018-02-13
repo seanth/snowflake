@@ -17,6 +17,7 @@ Requirements for Laser Cutting:
     * scipy/numpy (For clustering)
 
 Requirements for 3D Printing:
+
     * PyPy or Python
     * PIL (PyPy/Python accessible)
     * potrace (For translating SVG)
