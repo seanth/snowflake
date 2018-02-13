@@ -61,13 +61,18 @@ def pipeline_lasercutter(args, lattice, inches=3, dpi=96, turd=10):
     size = args.target_size
     layerfn = "%s_layer_%%d.bmp" % name
     resize = inches * dpi
+    print "***Attempting to save layers as BMP images***"
     fnlist = rs.save_layers(layerfn, 2, resize=resize, margin=1)
     # we want to drop the heaviest layer
     del fnlist[0]
+    #
     # try to save o'natural
+    print "***Attempting to generate BMP image***"
     imgfn = "%s_bw.bmp" % name
-    svgfn = "%s_bw.svg" % name
     lattice.save_image(imgfn, scheme=BlackWhite(lattice), resize=resize, margin=1)
+    #
+    print "***Attempting to generate SVG using potrace***"
+    svgfn = "%s_bw.svg" % name
     potrace(svgfn, imgfn, turd=2000)
     if not check_basecut(svgfn):
         msg = "There are disconnected elements in the base cut, turning on boundary layer."
@@ -90,9 +95,11 @@ def pipeline_lasercutter(args, lattice, inches=3, dpi=96, turd=10):
             potrace(svgfn, fn, turd=turd, size=size)
         else:
             potrace(svgfn, fn, size=size)
+    #
+    print "***Attempting to merge SVG images***"
     svgfn = "%s_laser_merged.svg" % name
-    epsfn = "%s_laser_merged.eps" % name
     merge_svg(svgs, colors, svgfn)
+    #
     """
     # move to eps
     cmd = "%s %s -E %s" % (InkscapePath, svgfn, epsfn)
@@ -103,12 +110,26 @@ def pipeline_lasercutter(args, lattice, inches=3, dpi=96, turd=10):
 
 # 3d pipeline
 def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
+    # layers
+    rs = RenderSnowflake(lattice)
+    name = str.join('', [c for c in args.name if c.islower()])
+    size = args.target_size
+    layerfn = "%s_layer_%%d.bmp" % name
     resize = inches * dpi
+    print "***Attempting to save layers as BMP images***"
+    fnlist = rs.save_layers(layerfn, 2, resize=resize, margin=1)
+    # we want to drop the heaviest layer
+    print "***Deleting BMP layer index 0 %s" % fnlist[0]
+    os.remove(fnlist[0])
+    del fnlist[0]
+    #
     # try to save o'natural
-    imgfn = "%s_bw.bmp" % args.name
-    svgfn = "%s_bw.svg" % args.name
+    print "***Attempting to generate BMP image***"
+    imgfn = "%s_bw.bmp" % name
     lattice.save_image(imgfn, scheme=BlackWhite(lattice), resize=resize, margin=1)
+    #
     print "***Attempting to generate SVG using potrace***"
+    svgfn = "%s_bw.svg" % args.name
     potrace(svgfn, imgfn, turd=2000)
     if not check_basecut(svgfn):
         msg = "There are disconnected elements in the base cut, turning on boundary layer."
@@ -117,29 +138,46 @@ def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
         potrace(svgfn, imgfn, turd=2000)
         assert check_basecut(svgfn), "Despite best efforts, base cut is still non-contiguous."
     #
-    epsfn = "%s_3d.eps" % args.name
-    dxffn = "%s_3d.dxf" % args.name
-    print "***Attempting to generate EPS using potrace"
-    cmd = "potrace -M .1 --tight -i -b eps -o %s %s" % (epsfn, imgfn)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
+    print "***Deleting SVG %s" % svgfn
+    os.unlink(svgfn)
+    fnlist.insert(0, imgfn)
+    #
+    print "***Attempting to turn BMP layers into SVG images***"
+    epsList = []
+    for (idx, fn) in enumerate(fnlist):
+        epsfn = os.path.splitext(fn)[0]
+        epsfn = "%s_bmp.eps" % epsfn
+        epsList.append(epsfn)
+        cmd = "potrace -M .1 --tight -i -b eps -o %s %s" % (epsfn, fn)
+        #if idx == 0:
+        #     potrace(svgfn, fn, turd=turd, size=size)
+        # else:
+        #     potrace(svgfn, fn, size=size)
+        msg = "Running '%s'" % cmd
+        log(msg)
+        os.system(cmd)
     #
     print "***Attempting to generate DXF using pstoedit"
-    #on windows it _needs_ to have the dxf part in double quotes
-    #STH 2018.0212
-    cmd = 'pstoedit -dt -f "dxf:-polyaslines -mm" %s %s' % (epsfn, dxffn)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
+    dxfList=[]
+    for (idx, epsfn) in enumerate(epsList):
+        dxffn = os.path.splitext(epsfn)[0]
+        dxffn = "%s_eps.dxf" % dxffn
+        dxfList.append(dxffn)
+        #on windows it _needs_ to have the dxf part in double quotes
+        #STH 2018.0212
+        cmd = 'pstoedit -dt -f "dxf:-polyaslines -mm" %s %s' % (epsfn, dxffn)
+        msg = "Running '%s'" % cmd
+        log(msg)
+        os.system(cmd)
     #
-    scad_fn = "%s_3d.scad" % args.name
-    stlfn = "%s_3d.stl" % args.name
     print "***Attempting to generate a STL using OpenSCAD***"
+    scad_fn = "%s_3d.scad" % args.name
     f = open(scad_fn, 'w')
-    scad_txt = 'scale([30, 30, 30]) linear_extrude(height=.18, layer="0") import("%s");\n' % dxffn
-    f.write(scad_txt)
+    for (idx, dxffn) in enumerate(dxfList,1):
+        scad_txt = 'scale([30, 30, 30]) linear_extrude(height=%f, layer="0") import("%s");\n' % (idx*0.18, dxffn)
+        f.write(scad_txt)
     f.close()
+    stlfn = "%s_3d.stl" % args.name
     if sys.platform=="win32":
         cmd = "openscad.com -o %s %s" % (stlfn, scad_fn)
     else:
