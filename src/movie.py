@@ -1,3 +1,5 @@
+from sfgen import *
+
 class RenderMovie(object):
     def __init__(self, name):
         self.name = name
