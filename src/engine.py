@@ -134,76 +134,11 @@ class CrystalEnvironment(dict):
 	def _init_special(self):
 		pass
 
-class RenderMovie(object):
-    def __init__(self, name):
-        self.name = name
-        self.replay = LatticeReplay(name)
+# class RenderMovie(object) moved to movie.py
+# 2018-0212
 
-    def run(self):
-        if not os.path.exists("frames"):
-            os.mkdir("frames")
-        x = iter(self.replay)
-        for (idx, frame) in enumerate(self.replay):
-            fn = "frames/%s_%09d.png" % (self.name, idx + 1)
-            frame.save_image(fn)
-
-class LatticeReplay(object):
-    class ReplayIterator(object):
-        def __init__(self, replay):
-            self.replay = replay
-            self.idx = 0
-
-        def next(self):
-            try:
-                lattice = self.replay.get_lattice(self.idx)
-                self.idx += 1
-                return lattice
-            except IndexError:
-                raise StopIteration
-
-    def __init__(self, name):
-        self.name = name
-        self.current_frame = None
-        self.current_replay = None
-        pfn = "%s.pickle" % self.name
-        self.lattice = CrystalLattice.load_lattice(pfn)
-        self.scan_replays()
-
-    def __iter__(self):
-        return self.ReplayIterator(self)
-
-    def get_lattice(self, step):
-        (step, dm, cm) = self.get_step(step)
-        for (idx, cell) in enumerate(zip(dm, cm)):
-            self.lattice.cells[idx].diffusive_mass = cell[0]
-            self.lattice.cells[idx].crystal_mass = cell[1]
-            self.lattice.cells[idx].attached = bool(cell[1])
-        for cell in self.lattice.cells:
-            cell.update_boundary()
-        return self.lattice
-
-    def get_step(self, step):
-        idx = bisect.bisect_left(self.replay_map, step + 1)
-        if self.current_frame != idx or not self.current_replay:
-            self.current_frame = idx
-            fn = self.replays[self.current_frame]
-            print "loading", fn
-            f = open(fn)
-            self.current_replay = pickle.load(f)
-        offset = self.current_replay[0][0]
-        return self.current_replay[step - offset]
-
-    def scan_replays(self):
-        replays = []
-        fn_re = re.compile("cell_log_(\d+).pickle")
-        for fn in os.listdir('.'):
-            m = fn_re.search(fn)
-            if m:
-                step = int(m.group(1))
-                replays.append((fn, step))
-        replays.sort(key=operator.itemgetter(1))
-        self.replays = [rp[0] for rp in replays]
-        self.replay_map = [rp[1] for rp in replays]
+# class LatticeReplay(object) moved to movie.py
+# 2018-0212
 
 class CrystalLattice(object):
     LogHeader = ["dm", "cm", "bm", "acnt", "bcnt", "width", "beta", "theta", "alpha", "kappa", "mu", "upsilon"]
@@ -603,203 +538,24 @@ class SnowflakeCell(object):
         else:
             self.diffusive_mass = (1 + self.env.sigma) * self.diffusive_mass
 
-def check_basecut(svgfn):
-    # ensure there is only one path
-    svg = parse(svgfn)
-    for (cnt, node) in enumerate(svg.getElementsByTagName("path")):
-        if cnt > 0:
-            return False
-    return True
+# def check_basecut() moved to render.py
+# 2018-0212
 
-def merge_svg(file_list, color_list, outfn):
-    first = None
-    idx = 0
-    for (svgfn, color) in zip(file_list, color_list):
-        svg = parse(svgfn)
-        for node in svg.getElementsByTagName("g"):
-            if idx == 0:
-                # cut layer
-                # write a new group
-                container = svg.createElement("g")
-                container.setAttribute("transform", node.attributes["transform"].nodeValue)
-                node.parentNode.replaceChild(container, node)
-                container.appendChild(node)
-                node.attributes["fill"] = "none"
-                node.attributes["stroke"] = "rgb(0, 0, 255)"
-                node.attributes["stroke-opacity"] = "1"
-                node.attributes["stroke-width"] = ".01mm"
-            else:
-                node.attributes["fill"] = color
-            del node.attributes["transform"]
-            idx += 1
-            import_nodes = svg.importNode(node, True)
-            container.appendChild(import_nodes)
-            if first == None:
-                first = svg
-    f = open(outfn, 'w')
-    f.write(first.toxml())
+# def merge_svg() moved to render.py
+# 2018-0212
 
-def potrace(svgfn, fn, turd=None, size=None):
-    cmd = ["potrace", "-i", "-b", "svg"]
-    if turd != None:
-        cmd.extend(["-t", str(turd)])
-    if size != None:
-        sz = map(str, size)
-        cmd.extend(["-W", sz[0], "-H", sz[1]])
-    cmd.extend(["-o", svgfn, fn])
-    cmd = str.join(' ', cmd)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
 
-# laser cutter pipeline
-def pipeline_lasercutter(args, lattice, inches=3, dpi=96, turd=10):
-    # layers
-    rs = RenderSnowflake(lattice)
-    name = str.join('', [c for c in args.name if c.islower()])
-    size = args.target_size
-    layerfn = "%s_layer_%%d.bmp" % name
-    resize = inches * dpi
-    fnlist = rs.save_layers(layerfn, 2, resize=resize, margin=1)
-    # we want to drop the heaviest layer
-    del fnlist[0]
-    # try to save o'natural
-    imgfn = "%s_bw.bmp" % name
-    svgfn = "%s_bw.svg" % name
-    lattice.save_image(imgfn, scheme=BlackWhite(lattice), resize=resize, margin=1)
-    potrace(svgfn, imgfn, turd=2000)
-    if not check_basecut(svgfn):
-        msg = "There are disconnected elements in the base cut, turning on boundary layer."
-        log(msg)
-        lattice.save_image(imgfn, scheme=BlackWhite(lattice, boundary=True), resize=resize, margin=1)
-        potrace(svgfn, imgfn, turd=2000)
-        assert check_basecut(svgfn), "Despite best efforts, base cut is still non-contiguous."
-    os.unlink(svgfn)
-    fnlist.insert(0, imgfn)
-    # adjusted for ponoko
-    # cut layer is blue
-    # etch layer are black, or shades of grey
-    colors = ["#000000", "#111111", "#222222", "#333333", "#444444", "#555555"]
-    svgs = []
-    for (idx, fn) in enumerate(fnlist):
-        svgfn = os.path.splitext(fn)[0]
-        svgfn = "%s_laser.svg" % svgfn
-        svgs.append(svgfn)
-        if idx == 0:
-            potrace(svgfn, fn, turd=turd, size=size)
-        else:
-            potrace(svgfn, fn, size=size)
-    svgfn = "%s_laser_merged.svg" % name
-    epsfn = "%s_laser_merged.eps" % name
-    merge_svg(svgs, colors, svgfn)
-    """
-    # move to eps
-    cmd = "%s %s -E %s" % (InkscapePath, svgfn, epsfn)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
-    """
+# def potrace() moved to render.py
+# 2018-0212
 
-# 3d pipeline
-def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
-    resize = inches * dpi
-    # try to save o'natural
-    imgfn = "%s_bw.bmp" % args.name
-    svgfn = "%s_bw.svg" % args.name
-    lattice.save_image(imgfn, scheme=BlackWhite(lattice), resize=resize, margin=1)
-    potrace(svgfn, imgfn, turd=2000)
-    if not check_basecut(svgfn):
-        msg = "There are disconnected elements in the base cut, turning on boundary layer."
-        log(msg)
-        lattice.save_image(imgfn, bw=True, boundary=True)
-        potrace(svgfn, imgfn, turd=2000)
-        assert check_basecut(svgfn), "Despite best efforts, base cut is still non-contiguous."
-    #
-    epsfn = "%s_3d.eps" % args.name
-    dxffn = "%s_3d.dxf" % args.name
-    cmd = "potrace -M .1 --tight -i -b eps -o %s %s" % (epsfn, imgfn)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
-    #
-    cmd = "pstoedit -dt -f dxf:-polyaslines %s %s" % (epsfn, dxffn)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
-    #
-    scad_fn = "%s_3d.scad" % args.name
-    stlfn = "%s_3d.stl" % args.name
-    f = open(scad_fn, 'w')
-    scad_txt = 'scale([30, 30, 30]) linear_extrude(height=.18, layer="0") import("%s");\n' % dxffn
-    f.write(scad_txt)
-    f.close()
-    cmd = "/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD -o %s %s" % (stlfn, scad_fn)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
-    #
-    cmd = "python /Applications/Cura/Cura.app/Contents/Resources/Cura/cura.py -s %s -i %s" % (stlfn, SNOWFLAKE_INI)
-    msg = "Running '%s'" % cmd
-    log(msg)
-    os.system(cmd)
+# laser cutter pipeline moved to render.py
+# 2018-0212
 
-SNOWFLAKE_DEFAULTS = {
-    "size": 200,
-    "name": "snowflake",
-    "bw": False,
-    "env": '',
-    "pipeline_3d": False,
-    "pipeline_lasercutter": False,
-    "randomize": False,
-    "max_steps": 0,
-    "margin": .85,
-    "curves": False,
-    "datalog": False,
-    "debug": False,
-    "movie": False,
-}
+# 3d pipeline moved to render.py
+# 2018-0212
 
-def run(args):
-    log_output(args.name)
-    msg = "Snowflake Generator v0.3"
-    log(msg)
-    pfn = "%s.pickle" % args.name
-    ifn = "%s.png" % args.name
-    if os.path.exists(pfn):
-        cl = CrystalLattice.load_lattice(pfn)
-        #cl.save_image(ifn, bw=args.bw)
-        #cl.save_image(ifn)
-    else:
-        kw = {}
-        if args.env:
-            mods = {key: float(val) for (key, val) in [keyval.split('=') for keyval in args.env.split(',')]}
-            env = CrystalEnvironment(mods)
-            kw["environment"] = env
-        elif args.randomize:
-            env = CrystalEnvironment()
-            env.randomize()
-            msg = str.join(', ', ["%s=%.6f" % (key, env[key]) for key in env])
-            log(msg)
-            kw["environment"] = env
-        elif args.curves:
-            env = CrystalEnvironment.build_env(args.name, 50000)
-            kw["environment"] = env
-        kw["max_steps"] = args.max_steps
-        kw["margin"] = args.margin
-        kw["datalog"] = args.datalog
-        kw["debug"] = args.debug
-        cl = CrystalLattice(args.size, **kw)
-        try:
-            cl.grow()
-        finally:
-            cl.write_log()
-            cl.save_lattice(pfn)
-            #cl.save_image(ifn, bw=args.bw)
-            cl.save_image(ifn)
-    if args.pipeline_3d:
-        pipeline_3d(args, cl)
-    if args.pipeline_lasercutter:
-        pipeline_lasercutter(args, cl)
-    if args.movie:
-        movie = RenderMovie(args.name)
-        movie.run()
+# SNOWFLAKE_DEFAULTS moved to snowflake.py
+# 2018-0212
+
+# def run() moved to runner.py
+# 2018-0212
