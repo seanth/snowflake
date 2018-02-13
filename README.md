@@ -7,10 +7,12 @@ lifted (verbatim) from "MODELING SNOW CRYSTAL GROWTH II: A mesoscopic lattice
 map with plausible dynamics" by Janko Gravner and David Griffeath.
 
 Requirements:
+
     * PyPy (for fast execution of the simulations)
     * PIL for exporting graphics (PyPy accesible)
 
 Requirements for Laser Cutting:
+
     * Python only (no PyPy support)
     * PIL (Python accessible)
     * potrace (For translating SVG)
