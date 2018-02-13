@@ -1,3 +1,5 @@
+from sfgen import *
+
 def check_basecut(svgfn):
     # ensure there is only one path
     svg = parse(svgfn)
@@ -138,20 +140,6 @@ def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
     log(msg)
     os.system(cmd)
 
-SNOWFLAKE_DEFAULTS = {
-    "size": 200,
-    "name": "snowflake",
-    "bw": False,
-    "env": '',
-    "pipeline_3d": False,
-    "pipeline_lasercutter": False,
-    "randomize": False,
-    "max_steps": 0,
-    "margin": .85,
-    "curves": False,
-    "datalog": False,
-    "debug": False,
-    "movie": False,
-}
+
 
 
