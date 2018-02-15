@@ -383,7 +383,7 @@ class CrystalLattice(object):
 
     def grow(self):
         while True:
-            self.save_imageTwo("bla.png")
+            #self.save_imageTwo("bla.png")
             if self.debug:
                 self.print_status()
             self.step()
