@@ -117,16 +117,17 @@ def pipeline_3d(args, lattice, inches=3, dpi=96, turd=10):
     layerfn = "%s_layer_%%d.bmp" % name
     resize = inches * dpi
     print "***Attempting to save layers as BMP images***"
-    fnlist = rs.save_layers(layerfn, 2, resize=resize, margin=1)
+    fnlist = rs.save_layers(layerfn, 5, resize=resize, margin=1)
     # we want to drop the heaviest layer
-    print "***Deleting BMP layer index 0 %s" % fnlist[0]
-    os.remove(fnlist[0])
+    #print "***Deleting BMP layer index 0 %s" % fnlist[0]
+    #os.remove(fnlist[0])
     del fnlist[0]
     #
     # try to save o'natural
     print "***Attempting to generate BMP image***"
     imgfn = "%s_bw.bmp" % name
-    lattice.save_image(imgfn, scheme=BlackWhite(lattice), resize=resize, margin=1)
+    #lattice.save_image(imgfn, scheme=BlackWhite(lattice), resize=resize, margin=1)
+    lattice.save_image(imgfn, scheme=Grayscale(lattice), resize=resize, margin=1)
     #
     print "***Attempting to generate SVG using potrace***"
     svgfn = "%s_bw.svg" % args.name

@@ -19,6 +19,12 @@ SNOWFLAKE_DEFAULTS = {
     "debug": False,
     "movie": False,
 }
+parser = argparse.ArgumentParser(description='Snowflake Generator.')
+parser.set_defaults(**SNOWFLAKE_DEFAULTS)
+args = parser.parse_args()
+
+print args.name
+
 def ensure_python():
     # pylab doesn't play well with pypy
     # so this will cause us to re-exec if
@@ -28,13 +34,14 @@ def ensure_python():
         logging.warning(msg)
         args = ["/usr/local/bin/python", "python"] + sys.argv
         #os.execlp("/usr/bin/env", *args)
-        print args
+        #print args
         os.execlp(*args)
 
 
 def get_cli():
     parser = argparse.ArgumentParser(description='Snowflake Generator.')
     parser.add_argument('-n', '--name', dest="name", type=str, help="The name of the snowflake.")
+    parser.add_argument('-s', '--size', dest="size", type=int, help="The size of the snowflake.")
     parser.add_argument('-s', '--size', dest="size", type=int, help="The size of the snowflake.")
     parser.add_argument('-e', '--env', dest='env', help='Comma seperated key=val env overrides')
     parser.add_argument('-b', '--bw', dest='bw', action='store_true', help='Write out the image in black and white.')
@@ -69,10 +76,10 @@ def get_cli():
         ensure_python()
     return args
 
-if __name__ == "__main__":
-    args = get_cli()
-    os.chdir(args.name)
-    try:
-        run(args)
-    finally:
-        os.chdir('..')
+# if __name__ == "__main__":
+#     args = get_cli()
+#     os.chdir(args.name)
+#     try:
+#         run(args)
+#     finally:
+#         os.chdir('..')
