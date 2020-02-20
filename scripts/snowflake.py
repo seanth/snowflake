@@ -75,10 +75,10 @@ def get_cli():
         ensure_python()
     return args
 
-# if __name__ == "__main__":
-#     args = get_cli()
-#     os.chdir(args.name)
-#     try:
-#         run(args)
-#     finally:
-#         os.chdir('..')
+if __name__ == "__main__":
+    args = get_cli()
+    os.chdir(args.name)
+    try:
+        run(args)
+    finally:
+        os.chdir('..')
