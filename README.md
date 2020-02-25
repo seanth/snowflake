@@ -10,6 +10,7 @@ Requirements:
 
     * PyPy (for fast execution of the simulations)
     * PIL for exporting graphics (PyPy accesible)
+    * matplotlib (for viewing curve graphs)
 
 Requirements for Laser Cutting:
 
@@ -23,10 +24,9 @@ Requirements for 3D Printing:
     * PyPy or Python
     * PIL (PyPy/Python accessible)
     * potrace (For translating SVG) (http://potrace.sourceforge.net/#downloading)
-    * pstoedit
+    * pstoedit (https://managedway.dl.sourceforge.net/project/pstoedit/pstoedit/3.75/pstoedit-3.75.tar.gz)
     * ghostscript (must be v9.2) (brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/79e814b80c470c894d24e5b37108c5bacaf45a80/Formula/ghostscript.rb)
-    * matplotlib
-    * OpenSCAD
+    * OpenSCAD (https://www.openscad.org/downloads.html)
     * CURA version 15.04.6 (https://ultimaker.com/en/products/cura-software/list)
 
 ![Example Snowflake](https://raw.githubusercontent.com/vishnubob/snowflake/master/media/example.png)
